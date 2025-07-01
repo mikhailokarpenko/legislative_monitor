@@ -1,17 +1,51 @@
-# ML-OPS-PROJECT
-RSS feed ML Ops project
+## 📰 Multi-agent AI news assistant
+This Streamlit application implements a sophisticated news processing pipeline using multiple specialized AI agents to search, synthesize, and summarize news articles. It leverages the Llama 3.2 model via Ollama and DuckDuckGo search to provide comprehensive news analysis.
 
-## Data formate
-Ideal json data:
 
-{
-  "link": "https://www.huffpost.com/entry/covid-boosters-uptake-us_n_632d719ee4b087fae6feaac9",
-  "headline": "Over 4 Million Americans Roll Up Sleeves For Omicron-Targeted COVID Boosters",
-  "category": "U.S. NEWS",
-  "short_description": "Health experts said it is too early to predict whether demand would match up with the 171 million doses of the new boosters the U.S. ordered for the fall.",
-  "authors": "Carla K. Johnson, AP",
-  "date": "2022-09-23"
-}
+### Features
+- Multi-agent architecture with specialized roles:
+    - News Searcher: Finds recent news articles
+    - News Synthesizer: Analyzes and combines information
+    - News Summarizer: Creates concise, professional summaries
 
-## Brainstorm chat
-https://poe.com/s/lPvHYcrHBaQuHCIqgaUJ
+- Real-time news search using DuckDuckGo
+- AP/Reuters-style summary generation
+- User-friendly Streamlit interface
+
+
+### How to get Started?
+
+1. Clone the GitHub repository
+```bash
+git clone https://github.com/your-username/ai-news-processor.git
+cd awesome-llm-apps/ai_agent_tutorials/local_news_agent_openai_swarm
+```
+
+2. Install the required dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Pull and Run Llama 3.2 using Ollama:
+
+```bash
+# Pull the model
+ollama pull llama3.2
+
+# Verify installation
+ollama list
+
+# Run the model (optional test)
+ollama run llama3.2
+```
+
+4. Create a .env file with your configurations:
+```bash
+OPENAI_BASE_URL=http://localhost:11434/v1
+OPENAI_API_KEY=fake-key 
+```
+5. Run the Streamlit app
+```bash
+streamlit run news_agent.py
+```
