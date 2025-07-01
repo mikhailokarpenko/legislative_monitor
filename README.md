@@ -12,3 +12,6 @@ Ideal json data:
   "authors": "Carla K. Johnson, AP",
   "date": "2022-09-23"
 }
+
+## Brainstorm chat
+https://poe.com/s/lPvHYcrHBaQuHCIqgaUJ
