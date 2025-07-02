@@ -4,7 +4,7 @@ from swarm import Swarm, Agent
 from datetime import datetime
 from dotenv import load_dotenv
 import os
-from openai import OpenAI
+from llm_client import LLMClient
 
 load_dotenv()
 
@@ -12,12 +12,9 @@ load_dotenv()
 base_url = os.getenv("OPENAI_BASE_URL")
 api_key = os.getenv("OPENAI_API_KEY")
 
-if base_url:  # Using Ollama
-    MODEL = os.getenv("MODEL", "llama3.2:latest")
-    openai_client = OpenAI(base_url=base_url, api_key=api_key or "fake-key")
-else:  # Using OpenAI API
-    MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
-    openai_client = OpenAI(api_key=api_key)
+llm = LLMClient()
+model = llm.get_model()
+openai_client = llm.get_client()
 
 client = Swarm(client=openai_client)
 
@@ -46,7 +43,7 @@ search_agent = Agent(
     3. Return the raw search results in a structured format
     """,
     functions=[search_news],
-    model=MODEL
+    model=model
 )
 
 synthesis_agent = Agent(
@@ -61,7 +58,7 @@ synthesis_agent = Agent(
     6. Write in a clear, professional style
     Provide a 2-3 paragraph synthesis of the main points.
     """,
-    model=MODEL
+    model=model
 )
 
 summary_agent = Agent(
@@ -93,7 +90,7 @@ summary_agent = Agent(
     labels, or meta-text like "Here's a summary" or "In AP/Reuters style."
     Start directly with the news content.
     """,
-    model=MODEL
+    model=model
 )
 
 def process_news(topic):

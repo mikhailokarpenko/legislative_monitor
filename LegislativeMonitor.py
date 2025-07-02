@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
 from dotenv import load_dotenv
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
-from openai import OpenAI
+from llm_client import LLMClient
 
 # Suppress XML parsing warnings
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
@@ -42,7 +42,7 @@ class LegislativeMonitor:
             raise ValueError("OPENSTATES_KEY environment variable is required")
         
         self.graphql_client = self._create_graphql_client()
-        self.openai_client = self._create_openai_client()
+        self.llm = LLMClient()
         
     def _create_graphql_client(self) -> Client:
         """Create and configure the GraphQL client."""
@@ -54,13 +54,6 @@ class LegislativeMonitor:
                     "User-Agent": "LegislativeMonitor/1.0"
                 }
             )
-        )
-    
-    def _create_openai_client(self) -> OpenAI:
-        """Create and configure the OpenAI client."""
-        return OpenAI(
-            base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-            api_key=os.getenv("OPENAI_API_KEY", "fake-key")
         )
     
     def _execute_graphql_query(self, query: str) -> Optional[Dict]:
@@ -142,20 +135,17 @@ class LegislativeMonitor:
             return ""
     
     def generate_compliance_alert(self, bill_title: str, bill_content: str) -> Dict:
-        """Generate a compliance alert using OpenAI."""
+        """Generate a compliance alert using LLMClient."""
         prompt = f"""Summarize the following legislative change for a crypto compliance officer.
 Return JSON with keys: title, summary, deadline, action_required, severity.
 TEXT:\n{bill_content[:MAX_TEXT_LENGTH]}"""
         
         try:
-            response = self.openai_client.chat.completions.create(
-                model=os.getenv("MODEL", "gpt-4o-mini"),
+            response = self.llm.chat_completion(
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"}
             )
-            
             return json.loads(response.choices[0].message.content)
-            
         except Exception as e:
             print(f"Error generating compliance alert: {e}")
             return {

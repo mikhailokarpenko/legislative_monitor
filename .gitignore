@@ -2,3 +2,4 @@
 venv
 ai-docs
 .cursor
+__pycache__
