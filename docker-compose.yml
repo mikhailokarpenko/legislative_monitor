@@ -10,6 +10,8 @@ x-airflow-common:
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
+    OPENSTATES_KEY: ${OPENSTATES_KEY}
+    OPENAI_API_KEY: ${OPENAI_API_KEY}
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
@@ -39,7 +41,7 @@ services:
 
   airflow-webserver:
     <<: *airflow-common
-    command: api-server
+    command: standalone
     ports:
       - "8080:8080"
     healthcheck:
