@@ -4,6 +4,5 @@ ai-docs
 .cursor
 __pycache__
 venv311
-dags
 logs
 .DS_Store
