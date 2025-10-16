@@ -3,5 +3,6 @@ streamlit
 duckduckgo-search
 requests
 openai
-gql
+gql[requests]
 beautifulsoup4
+python-dotenv
