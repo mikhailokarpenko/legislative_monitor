@@ -1,37 +1,61 @@
+"""News Agent module for processing and summarizing news articles.
+
+This module provides a Streamlit web interface for searching, synthesizing,
+and summarizing news articles using AI agents.
+"""
+
 import os
-import datetime
-from dotenv import load_dotenv
+from datetime import datetime
+from typing import Tuple
+
 import streamlit as st
+from dotenv import load_dotenv
 from duckduckgo_search import DDGS
 from swarm import Swarm, Agent
+
 from llm_client import LLMClient
 
+# Configuration constants
 load_dotenv()
+BASE_URL = os.getenv("OPENAI_BASE_URL")
+API_KEY = os.getenv("OPENAI_API_KEY")
+MAX_NEWS_RESULTS = 3
 
-# Configuration for OpenAI API or Ollama
-base_url = os.getenv("OPENAI_BASE_URL")
-api_key = os.getenv("OPENAI_API_KEY")
-
+# Initialize clients
 llm = LLMClient()
 model = llm.get_model()
 openai_client = llm.get_client()
-
 client = Swarm(client=openai_client)
 
 st.set_page_config(page_title="AI News Processor", page_icon="📰")
 st.title("📰 News Inshorts Agent")
 
-def search_news(topic):
-    """Search for news articles using DuckDuckGo"""
-    with DDGS() as ddg:
-        results = ddg.text(f"{topic} news {datetime.now().strftime('%Y-%m')}", max_results=3)
-        if results:
-            news_results = "\n\n".join([
-                f"Title: {result['title']}\nURL: {result['href']}\nSummary: {result['body']}" 
-                for result in results
-            ])
-            return news_results
-        return f"No news found for {topic}."
+def search_news(topic: str) -> str:
+    """Search for news articles using DuckDuckGo.
+    
+    Args:
+        topic (str): The news topic to search for
+        
+    Returns:
+        str: Formatted news results or error message
+    """
+    try:
+        with DDGS() as search_engine:
+            results = search_engine.text(
+                f"{topic} news {datetime.now().strftime('%Y-%m')}",
+                max_results=MAX_NEWS_RESULTS
+            )
+            if results:
+                news_results = "\n\n".join([
+                    f"Title: {result['title']}\n"
+                    f"URL: {result['href']}\n"
+                    f"Summary: {result['body']}"
+                    for result in results
+                ])
+                return news_results
+            return f"No news found for {topic}."
+    except (ConnectionError, TimeoutError, ValueError) as e:
+        return f"Error searching for news: {str(e)}"
 
 # Create specialized agents
 search_agent = Agent(
@@ -93,8 +117,15 @@ summary_agent = Agent(
     model=model
 )
 
-def process_news(topic):
-    """Run the news processing workflow"""
+def process_news(topic: str) -> Tuple[str, str, str]:
+    """Run the complete news processing workflow.
+    
+    Args:
+        topic (str): The news topic to process
+        
+    Returns:
+        Tuple[str, str, str]: (raw_news, synthesized_news, final_summary)
+    """
     with st.status("Processing news...", expanded=True) as status:
         # Search
         status.write("🔍 Searching for news...")
@@ -103,7 +134,6 @@ def process_news(topic):
             messages=[{"role": "user", "content": f"Find recent news about {topic}"}]
         )
         raw_news = search_response.messages[-1]["content"]
-        
         # Synthesize
         status.write("🔄 Synthesizing information...")
         synthesis_response = client.run(
@@ -111,7 +141,6 @@ def process_news(topic):
             messages=[{"role": "user", "content": f"Synthesize these news articles:\n{raw_news}"}]
         )
         synthesized_news = synthesis_response.messages[-1]["content"]
-        
         # Summarize
         status.write("📝 Creating summary...")
         summary_response = client.run(
@@ -128,7 +157,11 @@ if st.button("Process News", type="primary"):
             raw_news, synthesized_news, final_summary = process_news(topic)
             st.header(f"📝 News Summary: {topic}")
             st.markdown(final_summary)
-        except Exception as e:
-            st.error(f"An error occurred: {str(e)}")
+        except (ConnectionError, TimeoutError) as e:
+            st.error(f"Network error occurred: {str(e)}")
+        except ValueError as e:
+            st.error(f"Invalid input: {str(e)}")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            st.error(f"An unexpected error occurred: {str(e)}")
     else:
         st.error("Please enter a topic!")
