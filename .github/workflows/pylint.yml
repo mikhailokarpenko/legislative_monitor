@@ -20,7 +20,7 @@ jobs:
         pip install pylint
     - name: Check file names
       run: |
-        python check_file_names.py
+        python .github/workflows/check_file_names.py
     - name: Analyse the code with pylint
       run: |
         pylint $(git ls-files '*.py')
